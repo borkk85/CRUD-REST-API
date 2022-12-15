@@ -33,7 +33,7 @@ $fields = [
     ],
     'productType' => [
         'label' => 'Product Type',
-        'validation' => ['selected'],
+        'validation' => ['required'],
         'options' => ['dvd', 'book', 'furniture']
     ],
     'dvd' => [
@@ -84,6 +84,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if (in_array($post['productType'], $fields['productType']['options'])) {
             // add the additional fields for the selected product type to the list of fields to validate
             switch ($post['productType']) {
+                case '':
+                    // Display an error message
+                    echo 'Please select a product type.';
+                    // Prevent the form from being submitted
+                    return;
                 case 'dvd':
                     $fieldsToValidate = array_merge($fieldsToValidate, [
                         $fields['dvd']['label'] => $fields['dvd']
@@ -126,9 +131,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         if (!$post[$field]) {
                             $errors[$field] = "{$arr['label']} is required";
                         }
-                        break;
-
-                    case 'selected':
+                        
                         // check if field has a list of valid options
                         if (isset($arr['options']) && is_array($arr['options'])) {
                             // check if the selected value is in the list of valid options
