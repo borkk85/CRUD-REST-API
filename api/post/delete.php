@@ -1,8 +1,9 @@
 <?php
-
+ini_set('display_errors', 'On');
+error_reporting(E_ALL);
 //Headers
 header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json; charset=UTF-8');
+header('Content-Type: application/x-www-form-urlencoded');
 header('Access-Control-Allow-Methods: DELETE');
 header('Access-Control-Allow-Headers: Access-Control-Allow-Headers,Content-Type,Access-Control-Allow-Methods, Authorization, X-Requested-With');
 
@@ -14,38 +15,26 @@ require '../../models/post.php';
 
 $database = new Database();
 $db = $database->connect();
-
+$table = 'skandi';
+$fields = [];
 
 //Instantiate post
-$product = new Post($db);
+$product = new Post($db,$table,$fields);
+$post = [];
 
-
-
-//Get raw data
-
-$json = json_decode(file_get_contents("php://input"), true);
-
-// $data = array_map('trim', $json);
-
-$product->id = $json->id;
-
-// $product->id = isset($json['id']) ? count($json['id']) : '';
-
-var_dump($json);
+$id = explode(',', $_GET['id']);
 
 
 try {
+  $response = $product->delete($id);
+  echo $response;
+} catch (\Throwable $e) {
+  echo "Error occurred in delete method: " . $e->getMessage();
+}
 
-    $product->delete($ids);
-    $response = [
-        'message' => "Created Successfully",
-            'status' => 200
-    ];
-        echo json_encode($response);
-    
-    } catch (\Throwable $e) {
-        $response = [
-            'message' => $e->getMessage()
-        ];
-        echo json_encode($response);
-    }
+
+
+
+
+
+

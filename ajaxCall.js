@@ -1,6 +1,3 @@
-
-
-
 //POST REQUEST
 
 // $(document).ready(function(){
@@ -24,7 +21,7 @@
 
 //       //pass serialized data to function
 //       var test = getUrlVars(url);
-      
+
 //       //post with ajax
 //       $.ajax({
 //           type:"POST",
@@ -72,18 +69,17 @@
 //       }
 //     }
 //   });
-  
+
 //     $("#saveBtn").click(function() {
 //       if(!$("#apiform").validate()) {
 //         return false;
 //       } else {
 //         $("#apiform").submit()
 
-        
 //       }
 //     })
 //     //serialize form data
-   
+
 //     var url = $("form").serialize();
 
 //     //function to turn url to an object
@@ -100,10 +96,9 @@
 
 //     //pass serialized data to function
 //     var test = getUrlVars(url);
-   
 
 //     //post with ajax
-    
+
 //     $.ajax({
 //       type: "POST",
 //       url: "/api/post/create.php",
@@ -117,140 +112,51 @@
 //         alert("SKU already exists");
 //       }
 //     });
-    
+
 //   });
-    
-
-
 
 $(document).ready(function () {
-  // $("#apiform").validate({
-  //   rules: {
-  //     sku: {
-  //         required: {
-  //           depends:function(){
-  //             $(this).val($.trim($(this).val()));
-  //             return true;
-  //           }
-  //         },
-  //         minlength: 9,
-  //     },
-  //     name: {
-  //         required: true,
-  //         maxlength: 20,
-  //     },
-  //     price: {
-  //         required: true,
-  //         maxlength: 5,
-  //     },
-  //     productType: {
-  //       required: true,
-  //     },
-  //     size: {
-  //         required: true,
-  //         maxlength: 4,
-  //     },
-  //     weight: {
-  //         required: true,
-  //         maxlength: 4,
-  //     },
-  //     height: {
-  //         required: true,
-  //         maxlength: 3,
-  //     },
-  //     width: {
-  //         required: true,
-  //         maxlength: 3,
-  //     },
-  //     length: {
-  //         required: true,
-  //         maxlength: 3,
-  //     }
-  //     },
-  //     messages: {
-  //       sku: {
-  //         required: "Please, enter valid SKU",
-  //         minlength: "Please enter at least 9 characters"
-  //       },
-  //       name: {
-  //         required: "Please, enter valid name",
-  //         maxlength: "Please enter "
-  //       },
-  //       price: {
-  //         required: "Please, enter price",
-  //         maxlength: ""
-  //       },
-  //       productType: {
-  //         required: "Please select an option from the list",
-  //       },
-  //       size: {
-  //         required: "Please, provide the size of the DVD",
-  //         maxlength: ""
-  //       },
-  //       weight: {
-  //         required: "Please, provide the weight",
-  //         maxlength: ""
-  //       },
-  //       height: {
-  //         required: "Please, provide the required dimension",
-  //         maxlength: ""
-  //       },
-  //       width: {
-  //         required: "Please, provide the required dimension",
-  //         maxlength: ""
-  //       },
-  //       length: {
-  //         required: "Please, provide the required dimension",
-  //         maxlength: ""
-  //       }
-  //     }
-  //   });
+  $("#saveBtn").click(function (e) {
+    e.preventDefault();
 
-      $("#saveBtn").click(function (e) {
-      e.preventDefault();
-      
-      if (!$("#apiform").valid()) {
-        return false 
-      } else {
-          
-              //serialize form data
-    var url = $("form").serialize();
+    if (!$("#apiform").valid()) {
+      return false;
+    } else {
+      //serialize form data
+      var url = $("form").serialize();
 
-    //function to turn url to an object
-    function getUrlVars(url) {
-      var hash;
-      var myJson = {};
-      var hashes = url.slice(url.indexOf("?") + 1).split("&");
-      for (var i = 0; i < hashes.length; i++) {
-        hash = hashes[i].split("=");
-        myJson[hash[0]] = hash[1];
+      //function to turn url to an object
+      function getUrlVars(url) {
+        var hash;
+        var myJson = {};
+        var hashes = url.slice(url.indexOf("?") + 1).split("&");
+        for (var i = 0; i < hashes.length; i++) {
+          hash = hashes[i].split("=");
+          myJson[hash[0]] = hash[1];
+        }
+        return JSON.stringify(myJson);
       }
-      return JSON.stringify(myJson);
+
+      //pass serialized data to function
+      var test = getUrlVars(url);
+
+      //post with ajax
+      $.ajax({
+        type: "POST",
+        url: "/api/post/create.php",
+        data: test,
+        contentType: "application/json",
+        success: function (data) {
+          console.log(data);
+          alert("successfully posted");
+        },
+        error: function (data) {
+          console.log(data);
+          alert("unsuccessfully posted");
+        },
+      });
     }
-         
-    //pass serialized data to function
-    var test = getUrlVars(url);
-
-    //post with ajax
-    $.ajax({
-      type: "POST",
-      url: "/api/post/create.php",
-      data: test,
-      contentType: "application/json; charset=UTF-8",
-      success: function (data) {
-        console.log(data);
-        alert("successfully posted");
-      },
-      error: function (data) {
-        console.log(data)
-        alert('unsuccessfully posted');
-      },
-    });
-
-      };
-  
   });
-
 });
 
 //GET REQUEST
@@ -258,85 +164,83 @@ $(document).ready(function () {
 document.addEventListener("DOMContentLoaded", function () {
   window.onload = function () {
     async function getUsers() {
-        let url = '../api/post/read.php';
-        try {
-            let res = await fetch(url);
-            return await res.json(); 
-        } catch(error) {
-                console.log(error);
-            }
+      let url = "../api/post/read.php";
+      try {
+        let res = await fetch(url);
+        return await res.json();
+      } catch (error) {
+        console.log(error);
+      }
     }
     async function renderUser() {
-        let users = await getUsers(); 
-        let html = ``;
+      let users = await getUsers();
+      let html = ``;
 
-        users.forEach(user => {
-            let htmlSegment = `
+      users.forEach((user) => {
+        let htmlSegment = `
                 <table class="box">
                     <tr> 
-                    <th> <input type='checkbox' class='checkbox' name='checkbox' data-id=${user.id}> </th>
-                    <td style="display: none;">  ${user.id}</td>            
+                    <th><input type="checkbox" class="checkbox" name="checkbox[]" value="${
+                      user.id
+                    }" data-id="${user.id}"></th>       
                     <td>  ${user.sku}</td>
                     <td>  ${user.name}</td>
                     <td>  ${user.price}</td>
                     ${user.size ? `<td> Size: ${user.size} $ </td>` : ""} 
-                    ${user.weight ? `<td> Weight: ${user.weight}  Kg</td>` : "" }
+                    ${user.weight ? `<td> Weight: ${user.weight}  Kg</td>` : ""}
                     ${user.height ? `<td>  Height: ${user.height} CM</td>` : ""}
                     ${user.length ? `<td>  Length: ${user.length} CM</td>` : ""}
                     ${user.width ? `<td>  Width: ${user.width} CM</td>` : ""}
                     </tr>
                 </table>`;
 
-                html += htmlSegment;
-        });
+        html += htmlSegment;
+      });
 
-        let container = document.querySelector('.message');
-        container.innerHTML = html;
+      let container = document.querySelector(".message");
+      container.innerHTML = html;
     }
     renderUser();
   };
 });
 
-
 //DELETE
 
-$(document).ready(function () {
-  $("#deleteBtn").click(function (e) {
-    e.preventDefault();
+$(document).ready(function() {
+  $("#deleteBtn").click(function(e) {
+      // Get the checkboxes that are checked
+      let checkboxes = document.querySelectorAll('input[type=checkbox]:checked');
 
+      // Create an array to hold the IDs of the records to be deleted
+      let ids = [];
 
-    var val = [];
-    
-    $(':checkbox:checked').each(function() {
-      val.push($(this).attr('data-id'));
-    });
-     
-    if (val.length === 0) {
-      alert("Please select at least one checkbox");
-    } else {
-
-    $.ajax({
-      type: "DELETE",
-      url: "/api/post/delete.php",
-      data:{'val':val},
-      ContentType:"application/json; charset=UTF-8",
-
-      success:function(data){
-          alert('successfully posted');
-      },
-      error:function(data){
-          alert('Could not be posted');
+      // Loop through the checkboxes and get the ID value from the data attribute
+      for (let checkbox of checkboxes) {
+        ids.push(checkbox.value);
       }
-    
-    });
-   };
+      
+      // Create the query string using the IDs array
+      let queryString = '?' + ids.map((id) => `id=${id}`).join('&');
+
+      // Submit the delete_form form to the server using the query string
+      $.ajax({
+        url: '/api/post/delete.php' + queryString,
+        type: 'DELETE',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+          console.log(response);
+        },
+        error: function(error) {
+          console.log(error);
+        }
+      });
   });
 });
 
-
 // document.addEventListener('DOMContentLoaded',function(){
 //   document.getElementById('deleteBtn').onclick=function(){
-       
+
 //     let checkBox = document.querySelectorAll('[type="checkbox"]');
 //     [].forEach.call(checkBox, function(cb) {
 //       cb.addEventListener("click", function() {
@@ -346,9 +250,7 @@ $(document).ready(function () {
 //   };
 // });
 
-  // console.log(e.target.parentElement.dataset.id);
-
-
+// console.log(e.target.parentElement.dataset.id);
 
 // document.addEventListener("DOMContentLoaded", function () {
 // document.getElementById('deleteBtn').onclick=function(){
@@ -358,22 +260,21 @@ $(document).ready(function () {
 //   console.log(e.target.parentElement.dataset.id);
 
 //   fetch(`${url}/${id}`, {
-//     method: 'DELETE', 
+//     method: 'DELETE',
 //     headers: {
 //       'Content-Type' : 'application/json'
 //     },
 //   })
 //      .then(res => console.log(res))
 
-// }     
+// }
 // })
 
 //     let url = '../api/post/delete.php';
-       
-//     fetch(url) 
+
+//     fetch(url)
 //     .then(res=>res.json())
 //     .then(data=>renderPosts(data))
-
 
 //     let checkBox = e.target.id == 'checkbox';
 
@@ -390,7 +291,7 @@ $(document).ready(function () {
 //         let url = '../api/post/read.php';
 //         try {
 //             let res = await fetch(url);
-//             return await res.json(); 
+//             return await res.json();
 //         } catch(error) {
 //                 console.log(error);
 //             }
@@ -400,23 +301,16 @@ $(document).ready(function () {
 
 // let deleteData = async () => {
 //     let response = await fetch ('../api/post/delete.php', {
-//       method: 'DELETE', 
+//       method: 'DELETE',
 //       headers: {'Content-Type': 'application/json' },
 //       body: JSON.stringify(id)
-//     }) 
+//     })
 //     try {
 //         let res = await fetch(url);
-//         return await res.json(); 
+//         return await res.json();
 //     } catch(error) {
 //             console.log(error);
 //         }
 // }
 
 // btnDel.addEventListener('click', deleteData);
-
-
-
-
-
-  
-

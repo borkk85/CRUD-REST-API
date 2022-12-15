@@ -18,18 +18,48 @@ $db = $database->connect();
 $table = 'skandi';
 $fields = [];
 
-$fields['sku'] = ['label' => 'SKU', 'validation' => ['required']];
-$fields['name'] = ['label' => 'Name', 'validation' => ['required']];
-$fields['price'] = ['label' => 'Price', 'validation' => ['required']];
-$fields['productType'] = ['label' => 'options', 'validation' => ['selected']];
-$fields['size']= ['label' => 'size', 'validation' =>  ['required1']];
-$fields['weight'] = ['label' => 'weight', 'validation' => ['required2']];
-$fields['height'] = ['label' => 'height', 'validation' => ['required3']];
-$fields['length'] = ['label' => 'length', 'validation' => ['required3']];
-$fields['width'] = ['label' => 'width', 'validation' =>  ['required3']];
+$fields = [
+    'sku' => [
+        'label' => 'SKU',
+        'validation' => ['required']
+    ],
+    'name' => [
+        'label' => 'Name',
+        'validation' => ['required']
+    ],
+    'price' => [
+        'label' => 'Price',
+        'validation' => ['required']
+    ],
+    'productType' => [
+        'label' => 'Product Type',
+        'validation' => ['selected'],
+        'options' => ['dvd', 'book', 'furniture']
+    ],
+    'dvd' => [
+        'label' => 'size',
+        'validation' => ['required']
+    ],
+    'book' => [
+        'label' => 'weight',
+        'validation' => ['required']
+    ],
+    'furniture' => [
+        'height' => [
+            'label' => 'height', 'validation' => ['required']
+        ],
+        'length' => [
+            'label' => 'length', 'validation' => ['required']
+        ],
+        'width' => [
+            'label' => 'width', 'validation' => ['required']
+        ]
+    ]
+
+];
 
 //Instantiate post
-$product = new Post($db,$table,$fields);
+$product = new Post($db, $table, $fields);
 
 $post = []; // array to hold a trimmed working copy of the form data
 $errors = []; // array to hold user/validation errors
@@ -42,102 +72,91 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // trim all the input data at once
     $post = array_map('trim', $json);
 
-    foreach ($fields as $field => $arr) {
+    $fieldsToValidate = [
+        'sku' => $fields['sku'],
+        'name' => $fields['name'],
+        'price' => $fields['price'],
+        'productType' => $fields['productType']
+    ];
+
+    if (isset($post['productType']) && !empty($post['productType'])) {
+        // check if the selected value is in the list of valid options
+        if (in_array($post['productType'], $fields['productType']['options'])) {
+            // add the additional fields for the selected product type to the list of fields to validate
+            switch ($post['productType']) {
+                case 'dvd':
+                    $fieldsToValidate = array_merge($fieldsToValidate, [
+                        $fields['dvd']['label'] => $fields['dvd']
+                    ]);
+                    break;
+                case 'book':
+                    $fieldsToValidate = array_merge($fieldsToValidate, [
+                        $fields['book']['label'] => $fields['book']
+                    ]);
+                    break;
+                case 'furniture':
+                    $fieldsToValidate = array_merge($fieldsToValidate, [
+                        'height' => $fields['furniture']['height'],
+                        'length' => $fields['furniture']['length'],
+                        'width' => $fields['furniture']['width'],
+                    ]);
+                    break;
+            }
+        } else {
+            // set to empty array if productType is not one of the expected values
+            $fieldsToValidate = [];
+        }
+    }
+
+
+    if (empty($fieldsToValidate)) {
+        // set $fieldsToValidate to the default fields to validate
+        $fieldsToValidate = [
+            'sku' => $fields['sku'],
+            'name' => $fields['name'],
+            'price' => $fields['price']
+        ];
+    }
+
+    foreach ($fieldsToValidate as $field => $arr) {
         if (isset($arr['validation']) && is_array($arr['validation'])) {
             foreach ($arr['validation'] as $rule) {
                 switch ($rule) {
                     case 'required':
-                        if ($post[$field] === '') {
+                        if (!$post[$field]) {
                             $errors[$field] = "{$arr['label']} is required";
                         }
                         break;
-                                                     
-                        case 'selected':
-                            if ($post[$field] == 'select') {
-                                $errors[$field] = "Please select one of the provided {$arr['label']}";
-                            } elseif(empty($post[$field] == 'dvd')){
-                                $errors[$field] = "Please enter the required {$arr['label']}";
+
+                    case 'selected':
+                        // check if field has a list of valid options
+                        if (isset($arr['options']) && is_array($arr['options'])) {
+                            // check if the selected value is in the list of valid options
+                            if (in_array($post[$field], $arr['options'])) {
+                                // check if a value is entered for the selected option
+                                if (!$post[$field]) {
+                                    $errors[$field] = "{$arr['label']} must be one of the following: " . implode(', ', $arr['options']);
+                                }
                             }
-                            
-                          break;
-                        //   case 'required1':
-                            
-                        //   if($post[$field] === 'dvd' && $post[$field] === '') {
-                        //     $errors[$field] = "Please enter the required {$arr['label']}";
-                        // }
-                        // break;
-                        // case 'required2':
-
-                        // if($post[$field] == 'book') {
-                        //     $errors[$field] = "Please enter the required {$arr['label']}";
-                        // }
-                        // break;
-                        // case 'required3':
-
-                        // if($post[$field] == 'furniture') {
-                        //     $errors[$field] = "Please enter the required {$arr['label']}";
-                        // }
-                        // break;
-                            // elseif($post[$field] == 'dvd') {
-                            //     $errors[$field] = "Please enter the required {$arr['label']}";
-                            // } elseif($post[$field] == 'book') {
-                            //     $errors[$field] = "Please enter the required {$arr['label']}";
-                            // } elseif($post[$field] == 'furniture-h') {
-                            //     $errors[$field] = "Please enter the required {$arr['label']}";
-                            // }
-                            // case 'selected1':
-                            //     if ($post[$field] === '') {
-                            //         $errors[$field] = "Please enter the required {$arr['label']}";
-                            //     } 
-                            //     break;
-                            //     case 'selected2':
-                            //         if ($post[$field] === '') {
-                            //             $errors[$field] = "Please enter the required {$arr['label']} ";
-                            //         } 
-                            //         break;
-                            //         case 'selected3':
-                            //             if ($post[$field] === '') {
-                            //                 $errors[$field] = "Please enter the required {$arr['label']}";
-                            //             } 
-                            //             break;
-                        
-                            // if (empty($post[$field] == 'book')) {
-                            //     $errors[$field] = "At least one {$arr['label']} must be selected";
-                            // } else {
-                            //     return true;
-                            // }
-                            // if (empty($post[$field] == 'furniture-h')) {
-                            //     $errors[$field] = "At least one {$arr['label']} must be selected";
-                            // } else {
-                            //     return true;
-                            // }
-                            // if (empty($post[$field] == 'furniture-l')) {
-                            //     $errors[$field] = "At least one {$arr['label']} must be selected";
-                            // } else {
-                            //     return true;
-                            // }
-                            // if (empty($post[$field] == 'furniture-w')) {
-                            //     $errors[$field] = "At least one {$arr['label']} must be selected";
-                            // } else {
-                            //     return true;
-                            // }
-                            
-                        // add code for other validation rules here...
-
+                        }
+                        break;
+                        foreach ($fields['furniture'] as $field => $arr) {
+                            if (isset($arr['validation']) && is_array($arr['validation'])) {
+                                foreach ($arr['validation'] as $rule) {
+                                    switch ($rule) {
+                                        case 'required':
+                                            if (!$post[$field]) {
+                                                $errors[$field] = "{$arr['label']} is required";
+                                            }
+                                            break;
+                                    }
+                                }
+                            }
+                        }
                 }
             }
         }
     }
-
-    // $product->sku = $post['sku'];
-    // $product->name = $post['name'];
-    // $product->price = $post['price'];
-    // $product->productType = $post['productType']; 
-    // $product->size = $post['size'];
-    // $product->weight = $post['weight'];
-    // $product->height = $post['height'];
-    // $product->length = $post['length'];
-    // $product->width = $post['width'];
 
     if (empty($errors)) {
 
@@ -161,38 +180,3 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
     echo json_encode($response);
 }
-
-    // try {
-
-    //     $product->create();
-        
-    //     $response = [
-    //         'message' => "Created Successfully",
-    //             'status' => 200
-    //     ];
-    //         echo json_encode($response);
-        
-    //     } catch (\Throwable $e) {
-
-    //         $query = "SELECT DISTINCT sku, name FROM ' . $this->table . '";
-    //         $stmt = $this->conn->prepare($query);
-    //         // $stmt->execute(['sku', 'name']);
-
-    //         if($stmt->execute(['sku']) == 1062) {
-    //             $errors['sku'] = 'sku already in use';
-    //         } else if ($stmt->execute(['name']) == 1062) {
-
-    //             $errors['name'] = 'name already in use';
-              
-    //         } else {
-    //             $response = [
-    //                 'message' => $e->getMessage()
-    //             ];
-    //             echo json_encode($response);
-    //         }
-
-            
-    //     }
-
-
-//Create 

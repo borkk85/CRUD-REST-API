@@ -12,10 +12,11 @@ require '../../models/post.php';
 
 $database = new Database();
 $db = $database->connect();
-
+$table = 'skandi';
+$fields = [];
 
 //Instantiate post
-$product = new Post($db);
+$product = new Post($db,$table,$fields);
 
 //Product query
 
@@ -50,6 +51,8 @@ if($num>0) {
         // array_push($post_arr['data'], $post_item);
 
     }
+
+    
 
     //Turn to JSON & output
      echo json_encode($post_arr);

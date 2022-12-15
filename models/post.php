@@ -1,4 +1,6 @@
 <?php 
+ini_set('display_errors', 'On');
+error_reporting(E_ALL);
 
 class Post {
     //DB
@@ -20,15 +22,16 @@ class Post {
 
     //Constructor 
 
-    public function __construct($db) {
+    public function __construct($db,$table,$fields) {
         $this->conn = $db; 
-        
+        $this->table = $table;
+        $this->fields = $fields;
     }
 
     
     //Get Posts
     public function read() {
-        $query = 'SELECT 
+        $query = "SELECT 
             p.id as id, 
             p.sku,
             p.name, 
@@ -38,7 +41,7 @@ class Post {
             p.weight, 
             p.height, 
             p.length, 
-            p.width FROM '. $this->table .' p  ORDER BY p.id DESC'; 
+            p.width FROM `$this->table` p  ORDER BY p.id DESC"; 
     
     $stmt = $this->conn->prepare($query);
 
@@ -55,12 +58,18 @@ class Post {
     $params = [];
 
     foreach(array_keys($this->fields) as $field) {
-        $set_terms[] = "`$field`=?";
-			$params[] = $data[$field];
+        if(!empty($data[$field])) {
+            $set_terms[] = "`$field`=?";
+            $params[] = $data[$field];
+        }
     }
-
+    $params = array_values($params);
  
     $query = "INSERT INTO `$this->table` SET " . implode(',',$set_terms);
+    if (empty($set_terms)) {
+        // Return an error message to the user
+        throw new PDOException("No values were provided for the fields");
+    }
     $stmt = $this->conn->prepare($query);
 
     try {
@@ -68,18 +77,6 @@ class Post {
         $stmt->execute($params);
         
         return true;
-
-    
-        // $stmt->bindParam(':sku', $this->sku);
-        // $stmt->bindParam(':name', $this->name);
-        // $stmt->bindParam(':price', $this->price);
-        // $stmt->bindParam(':productType', $this->productType);
-        // $stmt->bindParam(':size', $this->size);
-        // $stmt->bindParam(':weight', $this->weight);
-        // $stmt->bindParam(':height', $this->height);
-        // $stmt->bindParam(':length', $this->length);
-        // $stmt->bindParam(':width', $this->width);
-        
         
     } catch (PDOException $e) {
        
@@ -93,49 +90,72 @@ class Post {
     }
   
 
-   public function delete(){
+//    public function delete(){
 
-    // $ids = array($this->id);
-    // $inQuery = implode(",", array_fill(0, count($ids)-1, "?"));
+//     // $ids = array($this->id);
+//     // $inQuery = implode(",", array_fill(0, count($ids)-1, "?"));
     
-    // $query = 'DELETE FROM  . $this->table . WHERE id IN (' . $inQuery .')'; 
-    // $stmt = $this->conn->prepare($query);
-    // foreach($ids as $k => $this->id) 
-    //  $stmt->bindParam(($k + 1), $this->id, PDO::PARAM_STR);
+//     // $query = 'DELETE FROM  . $this->table . WHERE id IN (' . $inQuery .')'; 
+//     // $stmt = $this->conn->prepare($query);
+//     // foreach($ids as $k => $this->id) 
+//     //  $stmt->bindParam(($k + 1), $this->id, PDO::PARAM_STR);
     
-    // if($stmt->execute()) {
-    //     return true;
+//     // if($stmt->execute()) {
+//     //     return true;
     
-    // } else {
-    //     // printf("Error: %s.\n", $stmt->error);
-    //     ini_set('display_errors',1);
-    //     return false;
-    // }
+//     // } else {
+//     //     // printf("Error: %s.\n", $stmt->error);
+//     //     ini_set('display_errors',1);
+//     //     return false;
+//     // }
         
-   // Create query
-          // Create query
-          $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id';
-          $stmt = $this->conn->prepare($query);
-          $stmt->bindParam(':id', $this->id, PDO::PARAM_INT);
+//    // Create query
+//           // Create query
+//         //   $input = json_decode(file_get_contents('php://input'));
 
-          try {
-                   // Prepare statement
-                   $stmt->execute();
+//           $query = "DELETE FROM  `$this->table` WHERE id = :id";
+//           $stmt = $this->conn->prepare($query);
+//           $this->id = htmlspecialchars(strip_tags($this->id));
+//           $stmt->bindParam(':id', $this->id);
 
-                   return true;
-          // Clean data
-        //   $this->id = htmlspecialchars(strip_tags($this->id));
+//           try {
+//                    // Prepare statement
+//                    $stmt->execute();
 
-          // Bind data
+//                    return json_encode(['rows_deleted' => $stmt->rowCount()]);
+//           // Clean data
+//         //   $this->id = htmlspecialchars(strip_tags($this->id));
 
-          // Execute query
+//           // Bind data
+
+//           // Execute query
          
-        } catch(\Throwable $e) {
-            $e = [
-                'message' => $e->getMessage()
-            ];
-            echo json_encode($e);
-        }
+//         } catch(\Throwable $e) {
+//             $e = [
+//                 'message' => $e->getMessage()
+//             ];
+//             echo json_encode($e);
+//         }
+
+//     }
+
+public function delete($id) {
+    // Convert the $id array into a comma-separated string
+    $id = implode(',', $id);
+  
+    $query = "DELETE FROM  `$this->table` WHERE id IN ($id)";
+    $stmt = $this->conn->prepare($query);
+  
+    try {
+      // Prepare statement
+      $result = $stmt->execute();
+      return json_encode(['rows_deleted' => $stmt->rowCount()]);
+    } catch (\Throwable $e) {
+      $e = [
+        'message' => $e->getMessage()
+      ];
+      echo json_encode($e);
     }
+  }
  
 }
