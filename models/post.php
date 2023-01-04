@@ -66,96 +66,52 @@ class Post {
     $params = array_values($params);
  
     $query = "INSERT INTO `$this->table` SET " . implode(',',$set_terms);
-    if (empty($set_terms)) {
-        // Return an error message to the user
-        throw new PDOException("No values were provided for the fields");
-    }
+
     $stmt = $this->conn->prepare($query);
 
     try {
-        
         $stmt->execute($params);
-        
-        return true;
-        
+        return ["success" => true];
     } catch (PDOException $e) {
-       
-        if($e->errorInfo[1] == 1062) // duplicate key error number
-        {
-            return false;
+        if ($e->errorInfo[1] == 1062) {
+            $errors = [];
+            if (stripos($e->errorInfo[2] , 'sku') !== false) {
+                $errors['sku'] = "SKU is already in use. ";
+            }
+            if (stripos($e->errorInfo[2] , 'name') !== false) {
+                $errors['name'] = "Name is already in use. ";
+            }
+            return ["success" => false, "errors" => $errors];
+        } else {
+            return ["success" => false, "errors" => ["sku" => $e->getMessage(), "name" => $e->getMessage()]];
         }
-        throw $e; // re-throw the pdoexception if not handled by this logic
-        
     }
     }
   
 
-//    public function delete(){
 
-//     // $ids = array($this->id);
-//     // $inQuery = implode(",", array_fill(0, count($ids)-1, "?"));
-    
-//     // $query = 'DELETE FROM  . $this->table . WHERE id IN (' . $inQuery .')'; 
-//     // $stmt = $this->conn->prepare($query);
-//     // foreach($ids as $k => $this->id) 
-//     //  $stmt->bindParam(($k + 1), $this->id, PDO::PARAM_STR);
-    
-//     // if($stmt->execute()) {
-//     //     return true;
-    
-//     // } else {
-//     //     // printf("Error: %s.\n", $stmt->error);
-//     //     ini_set('display_errors',1);
-//     //     return false;
-//     // }
-        
-//    // Create query
-//           // Create query
-//         //   $input = json_decode(file_get_contents('php://input'));
+public function delete($ids) {
+  // Prepare the DELETE statement
+  $query = "DELETE FROM `$this->table` WHERE id = ?";
+  $stmt = $this->conn->prepare($query);
 
-//           $query = "DELETE FROM  `$this->table` WHERE id = :id";
-//           $stmt = $this->conn->prepare($query);
-//           $this->id = htmlspecialchars(strip_tags($this->id));
-//           $stmt->bindParam(':id', $this->id);
+  // Initialize the rows_deleted variable
+  $rows_deleted = 0;
 
-//           try {
-//                    // Prepare statement
-//                    $stmt->execute();
+  // Loop through the IDs array
+  foreach ($ids as $id) {
+    // Bind the id value to the placeholder
+    $stmt->bindValue(1, $id, PDO::PARAM_INT);
 
-//                    return json_encode(['rows_deleted' => $stmt->rowCount()]);
-//           // Clean data
-//         //   $this->id = htmlspecialchars(strip_tags($this->id));
+    // Execute the DELETE statement
+    $stmt->execute();
 
-//           // Bind data
-
-//           // Execute query
-         
-//         } catch(\Throwable $e) {
-//             $e = [
-//                 'message' => $e->getMessage()
-//             ];
-//             echo json_encode($e);
-//         }
-
-//     }
-
-public function delete($id) {
-    // Convert the $id array into a comma-separated string
-    $id = implode(',', $id);
-  
-    $query = "DELETE FROM  `$this->table` WHERE id IN ($id)";
-    $stmt = $this->conn->prepare($query);
-  
-    try {
-      // Prepare statement
-      $result = $stmt->execute();
-      return json_encode(['rows_deleted' => $stmt->rowCount()]);
-    } catch (\Throwable $e) {
-      $e = [
-        'message' => $e->getMessage()
-      ];
-      echo json_encode($e);
-    }
+    // Increment the rows_deleted variable by the number of rows affected
+    $rows_deleted += $stmt->rowCount();
   }
+
+  // Return the rows_deleted value as a JSON string
+  return json_encode(['rows_deleted' => $rows_deleted]);
+}
  
 }
