@@ -18,16 +18,18 @@ $db = $database->connect();
 $table = 'skandi';
 $fields = [];
 
-$fields['sku'] = ['label' => 'SKU','validation' => ['required']];
-$fields['name'] = ['label' => 'Name','validation' => ['required']];
-$fields['price'] = ['label' => 'Price','validation' => ['required']];
-$fields['productType'] = ['label' => 'Product Type','validation' => ['required'],
-            'options' => ['dvd', 'book', 'furniture']];
-$fields['size'] = ['label' => 'size','validation' => ['required']];
-$fields['weight'] = ['label' => 'weight','validation' => ['required']];
-$fields['height'] = ['label' => 'height','validation' => ['required']];
-$fields['length'] = ['label' => 'length','validation' => ['required']];
-$fields['width'] = ['label' => 'width','validation' => ['required']];
+$fields['sku'] = ['label' => 'SKU', 'validation' => ['required']];
+$fields['name'] = ['label' => 'Name', 'validation' => ['required']];
+$fields['price'] = ['label' => 'Price', 'validation' => ['required']];
+$fields['productType'] = [
+    'label' => 'Product Type', 'validation' => ['required'],
+    'options' => ['dvd', 'book', 'furniture']
+];
+$fields['size'] = ['label' => 'size', 'validation' => ['dvd']];
+$fields['weight'] = ['label' => 'weight', 'validation' => ['book']];
+$fields['height'] = ['label' => 'height', 'validation' => ['furniture']];
+$fields['length'] = ['label' => 'length', 'validation' => ['furniture']];
+$fields['width'] = ['label' => 'width', 'validation' => ['furniture']];
 
 
 //Instantiate post
@@ -47,20 +49,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     foreach ($fields as $field => $arr) {
         if (isset($arr['validation']) && is_array($arr['validation'])) {
-            if (($field === 'size' && $post['productType'] !== 'dvd') ||
-            ($field === 'weight' && $post['productType'] !== 'book') ||
-            ($field === 'height' && $post['productType'] !== 'furniture') ||
-            ($field === 'length' && $post['productType'] !== 'furniture') ||
-            ($field === 'width' && $post['productType'] !== 'furniture')) {
-            continue;
-        }
+
             foreach ($arr['validation'] as $rule) {
                 switch ($rule) {
                     case 'required':
                         if (!$post[$field]) {
                             $errors[$field] = "{$arr['label']} is required";
                         }
-                        
+
                         // check if field has a list of valid options
                         if (isset($arr['options']) && is_array($arr['options'])) {
                             // check if the selected value is in the list of valid options
@@ -69,18 +65,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             }
                         }
                         break;
+                    case 'dvd':
+                        if ($post['productType'] === 'dvd' && !$post[$field]) {
+                            $errors[$field] = "{$arr['label']} is required for product type dvd";
+                        }
+                        break;
+                    case 'book':
+                        if ($post['productType'] === 'book' && !$post[$field]) {
+                            $errors[$field] = "{$arr['label']} is required for product type book";
+                        }
+                        break;
+                    case 'furniture':
+                        if ($post['productType'] === 'furniture' && !$post[$field]) {
+                            $errors[$field] = "{$arr['label']} is required for product type furniture";
+                        }
+                        break;
                 }
             }
         }
     }
-
-    // if (empty($errors)) {
-    //     $result = $product->create($post);
-    //     if (isset($result) && isset($result['errors'])) {
-    //         $errors = $result['errors'];
-    //     }
-    // }
-    
     // if no errors, success
     if (empty($errors)) {
         $result = $product->create($post);

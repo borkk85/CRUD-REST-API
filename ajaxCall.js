@@ -52,7 +52,7 @@ $(document).ready(function () {
 
   // Add a submit event listener to the form
   $("#apiform").submit(function (event) {
-    // $('.error').text('');
+    $('.server-error').text('');
     // Prevent the form from being submitted
     event.preventDefault();
 
@@ -184,6 +184,7 @@ $(document).ready(function () {
     // Create the query string using the IDs array
     // let queryString = '?' + ids.map((id) => `id=${id}`).join('&');
     let data = {
+      // _method: 'DELETE',
       id: ids,
     };
     $.ajax({
